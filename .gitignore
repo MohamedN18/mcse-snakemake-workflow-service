@@ -1,0 +1,7 @@
+.snakemake/
+*.log
+__pycache__/
+*.py[cod]
+hpcsera-env/
+agent-env/
+.vscode/
