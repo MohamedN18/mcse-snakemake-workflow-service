@@ -1,0 +1,15 @@
+rule all:
+	input:
+		"hello_world.txt"
+
+rule create_file:
+	output:
+		"hello_world.txt"
+	shell:
+		"sleep 5; echo 'Hello World from Snakemake' > {output}"
+
+rule testing:
+	input:
+		"hello_world.txt"
+	shell:
+		"echo 'Hello World'"

@@ -1,0 +1,221 @@
+openapi: 3.0.2
+info:
+  title: File Management API
+  description: API for uploading and retrieving files related to HPC jobs
+  version: 0.1.0
+
+paths:
+  /user/{user_name}/project/{project_name}/functionid/{function_id}/upload:
+    parameters:
+      - name: user_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: project_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: function_id
+        in: path
+        required: true
+        schema:
+          type: string
+    post:
+      summary: Upload a file for a specific job
+      operationId: file_management.file_routes.upload_file
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: File to be uploaded to the job folder.
+                function_name:
+                  type: string
+                  description: Name of the function associated with the upload.
+                system_upload:
+                  type: string
+                  description: If "true", allows uploading reserved filenames (e.g. status.json).
+      responses:
+        "200":
+          description: File uploaded successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+      security:
+        - secret_auth:
+            - post_file
+
+  /user/{user_name}/project/{project_name}/functionid/{function_id}/list_files:
+    parameters:
+      - name: user_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: project_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: function_id
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: List all files for a job
+      operationId: file_management.file_routes.list_job_files
+      responses:
+        "200":
+          description: Returns a list of file names for the job.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  job_id:
+                    type: string
+                  files:
+                    type: array
+                    items:
+                      type: string
+      security:
+        - secret_auth:
+            - get_file
+
+  /user/{user_name}/project/{project_name}/functionid/{function_id}/get_file/{file_name}:
+    parameters:
+      - name: user_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: project_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: function_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: file_name
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: Retrieve a specific file for a job
+      operationId: file_management.file_routes.get_file
+      responses:
+        "200":
+          description: File retrieved successfully.
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+      security:
+        - secret_auth:
+            - get_file
+
+  /user/{user_name}/project/{project_name}/functionid/{function_id}/delete_file/{file_name}:
+    parameters:
+      - name: user_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: project_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: function_id
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: file_name
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete a specific file from a job folder
+      operationId: file_management.file_routes.delete_file
+      responses:
+        "200":
+          description: File deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: File not found.
+      security:
+        - secret_auth:
+            - delete_file
+
+  /user/{user_name}/project/{project_name}/functionid/{function_id}/delete_job:
+    parameters:
+      - name: user_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: project_name
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: function_id
+        in: path
+        required: true
+        schema:
+          type: string
+    delete:
+      summary: Delete the entire job folder and all stored files
+      operationId: file_management.file_routes.delete_job
+      responses:
+        "200":
+          description: Job folder deleted successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        "404":
+          description: Job folder not found.
+      security:
+        - secret_auth:
+            - delete_file
+
+components:
+  securitySchemes:
+    secret_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: ""
+          scopes:
+            post_file: "Upload files via API"
+            get_file: "Retrieve files via API"
+            delete_file: "Delete files and job folders via API"
+      x-tokenInfoFunc: mytok.token_info
