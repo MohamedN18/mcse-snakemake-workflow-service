@@ -8,10 +8,10 @@ from datetime import datetime
 
 HOME = os.path.expanduser("~")
 WATCH_BASE_DIR = os.path.join(HOME, "BA_Code", "Agent", "job-watch")
-CHECK_INTERVAL = 10
+CHECK_INTERVAL = 5
 
 # How often to refresh slurm job_ids from the Snakemake log while RUNNING
-SLURM_ID_POLL_INTERVAL = 5
+SLURM_ID_POLL_INTERVAL = 3
 
 def now_ts():
 	"""
@@ -244,10 +244,10 @@ def extract_slurm_job_ids_from_log(log_path):
 
 	job_ids = set()
 
-	# Plugin format (what you showed)
+	# Plugin format
 	pat_plugin = re.compile(r"\bSLURM\s+jobid\s+(\d+)\b", re.IGNORECASE)
 
-	# Classic sbatch format (fallback)
+	# sbatch format (fallback)
 	pat_sbatch = re.compile(r"\bSubmitted\s+batch\s+job\s+(\d+)\b", re.IGNORECASE)
 
 	try:
