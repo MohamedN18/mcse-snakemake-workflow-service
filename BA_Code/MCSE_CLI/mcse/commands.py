@@ -1,6 +1,8 @@
 # mcse/commands.py
 import os
+import re
 import time
+
 
 from .api import (
 	API_SERVER,
@@ -51,8 +53,9 @@ def init_job(file_path, job_id=None, no_overwrite=False):
 	# Extract just file name in case a full path was provided
 	file_name = os.path.basename(file_path)
 
-	reserved = ["status.json", "snakemake.log", "slurm.log"]
-	if file_name in reserved:
+	# Reserved file names are: status.json and snakemake_run<X>.log, where X is any number >= 0 
+	reserved = ["status.json"]
+	if file_name in reserved or re.fullmatch(r"snakemake_run\d+\.log", file_name):
 		print(f"Error: {file_name} is a reserved file name.")
 		return
 
@@ -152,8 +155,9 @@ def upload_file(job_id, file_path, no_overwrite=False):
 	# Extract just file name in case a full path was provided
 	file_name = os.path.basename(file_path)
 
-	reserved = ["status.json", "snakemake.log", "slurm.log"]
-	if file_name in reserved:
+	# Reserved file names are: status.json and snakemake_run<X>.log, where X is any number >= 0
+	reserved = ["status.json"]
+	if file_name in reserved or re.fullmatch(r"snakemake_run\d+\.log", file_name):
 		print(f"Error: {file_name} is a reserved file name.")
 		return
 
@@ -404,7 +408,7 @@ def delete_job(job_id, file_name=None, keep_workspace=False):
 		# delete a single file on API side
 		delete_file_url = f"{API_SERVER}/file-management/user/{credentials['username']}/project/{credentials['project']}/functionid/{job_id}/delete_file/{file_name}"
 		delete_resp = make_delete_request(delete_file_url)
-		if not delete_resp:
+		if delete_resp is None:
 			return
 		print(f"Deleted file '{file_name}' from API job folder {job_id} (or it did not exist).")
 	else:
@@ -414,14 +418,14 @@ def delete_job(job_id, file_name=None, keep_workspace=False):
 			for f in file_list:
 				delete_file_url = f"{API_SERVER}/file-management/user/{credentials['username']}/project/{credentials['project']}/functionid/{job_id}/delete_file/{f}"
 				delete_resp = make_delete_request(delete_file_url)
-				if not delete_resp:
+				if delete_resp is None:
 					return
 			print(f"Cleared API job folder contents for {job_id} (kept folder because --keep-workspace).")
 		else:
 			# delete the entire job folder on API side
 			delete_job_url = f"{API_SERVER}/file-management/user/{credentials['username']}/project/{credentials['project']}/functionid/{job_id}/delete_job"
 			delete_resp = make_delete_request(delete_job_url)
-			if not delete_resp:
+			if delete_resp is None:
 				return
 			print(f"Deleted API job folder {job_id} (or it did not exist).")
 

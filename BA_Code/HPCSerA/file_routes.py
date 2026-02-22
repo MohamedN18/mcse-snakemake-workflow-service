@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import flask
 import app
@@ -199,9 +200,9 @@ def upload_file(user_name: str, project_name: str, function_id: str) -> flask.Re
 
 	# Prevent user from uploading files with reserved names
 	# System uploads (status.sh) can still upload these via system_upload=true
-	reserved = ["status.json", "snakemake.log", "slurm.log"]	# may need to adjust later
+	reserved = ["status.json"]
 	system_upload = flask.request.form.get("system_upload", "false").lower() == "true"
-	if file.filename in reserved and not system_upload:
+	if (file.filename in reserved or re.fullmatch(r"snakemake_run\d+\.log", file.filename)) and not system_upload:
 		return flask.jsonify({"error": f"{file.filename} is a reserved file name."}), 400
 
 	# Prevent weird filenames on upload too
